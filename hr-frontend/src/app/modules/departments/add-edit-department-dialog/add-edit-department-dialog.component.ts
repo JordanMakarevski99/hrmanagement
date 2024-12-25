@@ -15,7 +15,7 @@ import { Employee } from 'src/app/models/Employee';
 export class AddEditDepartmentDialogComponent implements OnInit {
   departmentForm!: FormGroup;
   employees!: Employee[];
-  
+
   constructor(
     private snackbarService: SnackbarService,
     private employeeService: EmployeeService,
@@ -23,7 +23,7 @@ export class AddEditDepartmentDialogComponent implements OnInit {
     @Inject(MAT_DIALOG_DATA) public data: any,
     private departmentService: DepartmentService,
     private fb: FormBuilder
-  ) {}
+  ) { }
 
   ngOnInit(): void {
     this.initializeForm();
@@ -51,27 +51,27 @@ export class AddEditDepartmentDialogComponent implements OnInit {
   }
 
   save(): void {
-    if (this.departmentForm.invalid) {
-      return;
-    }
+    if (this.departmentForm.invalid) return;
 
     const department: Department = {
-      ...this.data.department,
-      ...this.departmentForm.value,
+      id: this.data.mode === 'edit' ? this.data.department.id : undefined,
+      name: this.departmentForm.value.name,
+      managerId: this.departmentForm.value.managerId,
+      employeeCount: this.data.mode === 'edit' ? this.data.department.employeeCount : 0
     };
 
-    if (this.data.mode === 'add') {
-      this.departmentService.createDepartment(department).subscribe(() => {
-        this.dialogRef.close(true);
-        this.snackbarService.show('Department added!');
-      });
-    } else {
-      this.departmentService.updateDepartment(department.id!, department).subscribe(() => {
-        this.dialogRef.close(true);
-      });
-    }
-  }
+    const operation = this.data.mode === 'add'
+      ? this.departmentService.createDepartment(department)
+      : this.departmentService.updateDepartment(department.id!, department);
 
+    operation.subscribe({
+      next: () => {
+        this.dialogRef.close(true);
+        this.snackbarService.show(`Department ${this.data.mode === 'add' ? 'added' : 'updated'}!`);
+      },
+      error: (error) => console.log(error)
+    });
+  }
   cancel(): void {
     this.dialogRef.close();
   }

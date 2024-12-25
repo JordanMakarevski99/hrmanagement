@@ -15,7 +15,7 @@ export class DashboardComponent implements OnInit {
     private employeeService: EmployeeService,
     private leaveRequestService: LeaveRequestService,
     private departmentService: DepartmentService
-  ) {}
+  ) { }
 
   numberOfEmployees: number = 0;
   numberOfDepartments: number = 0;
@@ -24,20 +24,26 @@ export class DashboardComponent implements OnInit {
 
   employeeToDepartmentRatioChartData: ChartData<'doughnut'> = {
     labels: ['Employees', 'Departments'],
-    datasets: [{ data: [0, 0], label: 'Employees vs Departments' }]
+    datasets: [{ data: [0, 0], label: 'Count' }]
   };
 
   leaveRequestsChartData: ChartData<'bar'> = {
     labels: [],
-    datasets: [
-      {
-        label: 'Leave Requests by Status',
-        data: [],
-        backgroundColor: 'rgba(54, 162, 235, 0.5)',
-        borderColor: 'rgba(54, 162, 235, 1)',
-        borderWidth: 1
-      }
-    ]
+    datasets: [{
+      label: 'Number of Requests',
+      data: [],
+      backgroundColor: [
+        'rgba(75, 192, 192, 0.5)',
+        'rgba(255, 99, 132, 0.5)',
+        'rgba(255, 205, 86, 0.5)'
+      ],
+      borderColor: [
+        'rgba(75, 192, 192, 1)',
+        'rgba(255, 99, 132, 1)',
+        'rgba(255, 205, 86, 1)'
+      ],
+      borderWidth: 1
+    }]
   };
 
   doughnutChartOptions: ChartOptions<'doughnut'> = {
@@ -48,7 +54,7 @@ export class DashboardComponent implements OnInit {
       },
       tooltip: {
         callbacks: {
-          label: function(context) {
+          label: function (context) {
             let label = context.dataset.label || '';
             if (label) {
               label += ': ';
@@ -65,29 +71,20 @@ export class DashboardComponent implements OnInit {
 
   barChartOptions: ChartOptions<'bar'> = {
     responsive: true,
+    maintainAspectRatio: false,  // Add this
     scales: {
-      x: {
-        beginAtZero: true
-      },
       y: {
-        beginAtZero: true
+        beginAtZero: true,
+        ticks: {
+          stepSize: 1
+        }
       }
     },
     plugins: {
-      legend: {
-        position: 'top',
-      },
       tooltip: {
         callbacks: {
-          label: function(context) {
-            let label = context.dataset.label || '';
-            if (label) {
-              label += ': ';
-            }
-            if (context.parsed) {
-              label += `${context.parsed}`;
-            }
-            return label;
+          label: (context) => {
+            return `Count: ${context.parsed.y}`;
           }
         }
       }
@@ -116,11 +113,28 @@ export class DashboardComponent implements OnInit {
   }
 
   updateEmployeeToDepartmentRatio(): void {
-    this.employeeToDepartmentRatioChartData.datasets[0].data = [this.numberOfEmployees, this.numberOfDepartments];
+    const labels = ['Employees', 'Departments'];
+    const data = [this.numberOfEmployees, this.numberOfDepartments];
+
+    this.employeeToDepartmentRatioChartData = {
+      labels,
+      datasets: [{
+        ...this.employeeToDepartmentRatioChartData.datasets[0],
+        data
+      }]
+    };
   }
 
   updateLeaveRequestsChart(): void {
-    this.leaveRequestsChartData.labels = Object.keys(this.leaveRequestsByStatus);
-    this.leaveRequestsChartData.datasets[0].data = Object.values(this.leaveRequestsByStatus);
+    const labels = Object.keys(this.leaveRequestsByStatus);
+    const data = labels.map(key => this.leaveRequestsByStatus[key]);
+
+    this.leaveRequestsChartData = {
+      labels,
+      datasets: [{
+        ...this.leaveRequestsChartData.datasets[0],
+        data
+      }]
+    };
   }
 }

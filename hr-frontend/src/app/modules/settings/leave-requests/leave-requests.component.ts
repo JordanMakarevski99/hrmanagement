@@ -14,7 +14,7 @@ export class LeaveRequestsComponent implements OnInit {
   leaveRequests: LeaveRequest[] = [];
   currentDate: string = formatDate(new Date(), 'yyyy-MM-dd', 'en');
 
-  constructor(private snackbarService: SnackbarService,private leaveRequestService: LeaveRequestService) {}
+  constructor(private snackbarService: SnackbarService, private leaveRequestService: LeaveRequestService) { }
 
   ngOnInit(): void {
     this.leaveRequestService.getLeaveRequestsByStatus(this.status).subscribe(requests => {
@@ -22,24 +22,28 @@ export class LeaveRequestsComponent implements OnInit {
     });
   }
   approveRequest(id: number): void {
-    const currentDate = new Date().toISOString().split('T')[0];
-    this.leaveRequestService.updateLeaveRequestStatus(id, 'APPROVED', undefined)
-      .subscribe(() => {
-        this.leaveRequests = this.leaveRequests.filter(r => r.id !== id);
-        this.snackbarService.show('Leave request approved!')
+    this.leaveRequestService.updateLeaveRequestStatus(id, 'APPROVED')
+      .subscribe({
+        next: () => {
+          this.leaveRequests = this.leaveRequests.filter(r => r.id !== id);
+          this.snackbarService.show('Leave request approved!');
+        },
+        error: (err) => this.snackbarService.show('Error updating request status')
       });
   }
-  
+
   denyRequest(id: number): void {
     const denialReason = prompt("Reason for denial:");
-    if (denialReason) {
-      const currentDate = new Date().toISOString().split('T')[0];
-      this.leaveRequestService.updateLeaveRequestStatus(id, 'REJECTED', denialReason)
-        .subscribe(() => {
+    if (denialReason === null) return;
+
+    this.leaveRequestService.updateLeaveRequestStatus(id, 'REJECTED', denialReason || '')
+      .subscribe({
+        next: () => {
           this.leaveRequests = this.leaveRequests.filter(r => r.id !== id);
-          this.snackbarService.show('Leave request denied!')
-        });
-    }
+          this.snackbarService.show('Leave request denied!');
+        },
+        error: (err) => this.snackbarService.show('Error updating request status')
+      });
   }
 
   getStatusClass(status: string): string {
@@ -54,5 +58,5 @@ export class LeaveRequestsComponent implements OnInit {
         return '';
     }
   }
-  
+
 }

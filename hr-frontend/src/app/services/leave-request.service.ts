@@ -11,8 +11,8 @@ export class LeaveRequestService {
 
   private apiUrl = `${environment.apiUrl}/leave-requests`;
 
-  constructor(private http: HttpClient) {}
-  getAllLeaveRequests():Observable<LeaveRequest[]>{
+  constructor(private http: HttpClient) { }
+  getAllLeaveRequests(): Observable<LeaveRequest[]> {
     return this.http.get<LeaveRequest[]>(`${this.apiUrl}`);
   }
   createLeaveRequest(leaveRequest: LeaveRequest): Observable<LeaveRequest> {
@@ -26,11 +26,14 @@ export class LeaveRequestService {
   getLeaveRequestsByStatus(status: string): Observable<LeaveRequest[]> {
     return this.http.get<LeaveRequest[]>(`${this.apiUrl}/status?status=${status}`);
   }
-  
-  updateLeaveRequestStatus(id: number, status: string, denialReason?: string): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}/status`, { status, denialReason });
-  }
 
+  updateLeaveRequestStatus(id: number, status: string, reason?: string) {
+    const body = {
+      status: status,
+      reason: reason
+    };
+    return this.http.put<LeaveRequest>(`${this.apiUrl}/${id}/status`, body);
+  }
   deleteLeaveRequest(id: number): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${id}`);
   }

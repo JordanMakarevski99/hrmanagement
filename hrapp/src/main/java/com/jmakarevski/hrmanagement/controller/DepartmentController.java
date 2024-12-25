@@ -45,9 +45,16 @@
 	
 	
 	    @PutMapping("/{id}")
-	    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @RequestBody Department departmentRequest) {
+	    public ResponseEntity<Department> updateDepartment(@PathVariable Long id, @RequestBody DepartmentDto departmentRequest) {
+	        Department department = new Department(departmentRequest.getName());
+	        department.setId(id);
+	        if (departmentRequest.getManagerId() != null) {
+	            Employee manager = new Employee();
+	            manager.setId(departmentRequest.getManagerId());
+	            department.setManager(manager);
+	        }
 	        try {
-	            Department updatedDepartment = departmentService.updateDepartment(id, departmentRequest);
+	            Department updatedDepartment = departmentService.updateDepartment(id, department);
 	            return ResponseEntity.ok(updatedDepartment);
 	        } catch (RuntimeException e) {
 	            return ResponseEntity.notFound().build();

@@ -27,12 +27,22 @@ public class DepartmentService {
     @Transactional
     public Department createDepartment(Department department) {
         if (department.getManager() != null && department.getManager().getId() != null) {
-            Employee manager = employeeRepository.findById(department.getManager().getId()).orElse(null);
+            Employee manager = employeeRepository.findById(department.getManager().getId())
+                .orElseThrow(() -> new RuntimeException("Employee not found"));
+                
+            // Check if employee is already a manager
+            boolean isAlreadyManager = departmentRepository.findAll().stream()
+                .anyMatch(dept -> dept.getManager() != null && 
+                         dept.getManager().getId().equals(manager.getId()));
+                         
+            if (isAlreadyManager) {
+                throw new RuntimeException("Employee is already a manager of another department");
+            }
+            
             department.setManager(manager);
         }
         return departmentRepository.save(department);
     }
-
     @Transactional
     public Department updateDepartment(Long id, Department departmentRequest) {
         Optional<Department> departmentOptional = departmentRepository.findById(id);
